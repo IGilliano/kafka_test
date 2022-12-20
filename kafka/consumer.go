@@ -3,6 +3,7 @@ package kafka
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
+	"kafka_test/postgres"
 	"log"
 	"os"
 	"sync"
@@ -29,6 +30,8 @@ func NewConsumer(topic string) {
 	messages := make(chan *sarama.ConsumerMessage, 256)
 	initialOffset := sarama.OffsetNewest
 
+	tr := postgres.NewTaskRepository()
+
 	wg := sync.WaitGroup{}
 
 	for _, partition := range partitionList {
@@ -43,11 +46,14 @@ func NewConsumer(topic string) {
 			fmt.Println("got new partition")
 			for message := range pc.Messages() {
 				messages <- message
-				//fmt.Printf("[%d] %s\n", partition, message.Value)
+				id, err := tr.PostTaskToDB(string(message.Value), message.Timestamp)
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				fmt.Printf("Posted new task to DB:\n %s\nId = %d\n", string(message.Value), id)
 			}
 		}(pc)
 	}
-	fmt.Println("Here we are")
 	wg.Wait()
-	fmt.Println("Here we are NOW")
 }

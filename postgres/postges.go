@@ -25,8 +25,8 @@ func NewTaskRepository() TaskRepository {
 	return TaskRepository{db: db}
 }
 
-func (tr *TaskRepository) PostTaskToDB(t DbTask) (int, error) {
+func (tr *TaskRepository) PostTaskToDB(task string, time time.Time) (int, error) {
 	var id int
-	err := tr.db.QueryRow("INSERT INTO tasks (task, time) VALUES ($1, $2) RETURNING id", t.Task, t.Time).Scan(&id)
+	err := tr.db.QueryRow("INSERT INTO tasks (task, time) VALUES ($1, $2) RETURNING id", task, time).Scan(&id)
 	return id, err
 }
