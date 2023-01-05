@@ -3,6 +3,7 @@ package kafka
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
+	"kafka_test/cache"
 	"kafka_test/repository"
 	"log"
 	"os"
@@ -31,6 +32,7 @@ func NewConsumer(topic string) {
 	initialOffset := sarama.OffsetNewest
 
 	tr := repository.NewTaskRepository()
+	ch := cache.NewCache(0, 0)
 
 	wg := sync.WaitGroup{}
 
@@ -50,6 +52,9 @@ func NewConsumer(topic string) {
 					fmt.Println(err)
 				}
 				fmt.Printf("Posted new task to DB:\n %s\nId = %d\n", string(message.Value), id)
+				ch.Set(id, string(message.Value), message.Timestamp, 0)
+				fmt.Println(ch.Tasks[id])
+
 			}
 		}(pc)
 	}
