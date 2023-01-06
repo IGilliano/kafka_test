@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-func NewConsumer(topic string) {
+func NewConsumer(topic string, tr repository.ITaskRepository, ch *cache.Cache) {
 	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
 	brokers := []string{`localhost:9092`}
 
@@ -30,9 +30,6 @@ func NewConsumer(topic string) {
 	}
 	messages := make(chan *sarama.ConsumerMessage, 256)
 	initialOffset := sarama.OffsetNewest
-
-	tr := repository.NewTaskRepository()
-	ch := cache.NewCache(0, 0)
 
 	wg := sync.WaitGroup{}
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"kafka_test/cache"
 	"kafka_test/repository"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ type TaskImplementation struct {
 
 type ITaskImplementation interface {
 	GetTask(http.ResponseWriter, *http.Request)
+	RestoreCache(ch *cache.Cache) error
 }
 
 func NewTaskImplementation(tr repository.ITaskRepository) ITaskImplementation {
@@ -52,4 +54,22 @@ func (ti TaskImplementation) GetTask(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(errWrite)
 	}
 
+}
+
+func (ti TaskImplementation) RestoreCache(ch *cache.Cache) error {
+	var sum int
+	tasks, err := ti.taskRepository.GetTasks()
+	if err != nil {
+		return err
+	}
+
+	for i, _ := range tasks {
+		ch.Tasks[tasks[i].Id] = cache.CTask{
+			Task: tasks[i].Task,
+			Time: tasks[i].Time,
+		}
+		sum += 1
+	}
+	fmt.Printf("Cache restored. %d tasks uploaded\n", sum)
+	return err
 }

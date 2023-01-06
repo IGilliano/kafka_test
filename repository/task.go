@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
 	"time"
@@ -21,6 +20,7 @@ type TaskRepository struct {
 type ITaskRepository interface {
 	PostTaskToDB(string, time.Time) (int, error)
 	GetTaskFromDB(id int) ([]*DbTask, error)
+	GetTasks() ([]*DbTask, error)
 }
 
 func NewTaskRepository() ITaskRepository {
@@ -38,14 +38,10 @@ func (tr *TaskRepository) PostTaskToDB(task string, time time.Time) (int, error)
 }
 
 func (tr *TaskRepository) GetTaskFromDB(id int) ([]*DbTask, error) {
-	fmt.Println("Got to DB")
 	var task []*DbTask
 	rows, err := tr.db.Query("SELECT * FROM tasks WHERE id = $1", id)
 
-	fmt.Println(err)
-
 	for rows.Next() {
-		fmt.Println("Even got here")
 		var taskScan DbTask
 		err = rows.Scan(&taskScan.Task, &taskScan.Time, &taskScan.Id)
 		if err == nil {
@@ -53,6 +49,19 @@ func (tr *TaskRepository) GetTaskFromDB(id int) ([]*DbTask, error) {
 		}
 
 	}
-	fmt.Println(err)
 	return task, err
+}
+
+func (tr *TaskRepository) GetTasks() ([]*DbTask, error) {
+	var tasks []*DbTask
+	rows, err := tr.db.Query("SELECT * FROM tasks")
+
+	for rows.Next() {
+		var taskScan DbTask
+		err = rows.Scan(&taskScan.Task, &taskScan.Time, &taskScan.Id)
+		if err == nil {
+			tasks = append(tasks, &taskScan)
+		}
+	}
+	return tasks, err
 }

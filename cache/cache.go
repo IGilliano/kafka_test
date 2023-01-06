@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -99,5 +100,11 @@ func (c *Cache) Set(key int, value string, created time.Time, duration time.Dura
 		Task:       value,
 		Time:       created,
 		Expiration: expiration,
+	}
+}
+
+func (c *Cache) GetFromCache() {
+	for i, _ := range c.Tasks {
+		fmt.Println(c.Tasks[i].Task, c.Tasks[i].Time)
 	}
 }
